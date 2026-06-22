@@ -2,6 +2,24 @@
 
 A React Native task manager built with Expo and TypeScript.
 
+## What was implemented
+
+- Three screens with React Navigation: task list, add task, and task detail
+- Full CRUD: add, view, mark complete/incomplete, change status, and delete tasks
+- SQLite persistence so tasks survive app restarts
+- Initial data loaded from the JSONPlaceholder public API on first launch
+- Search tasks by title and filter by status
+- Input validation with inline error messages
+- Empty, loading, and error states with API retry
+
+
+
+## Screenshots
+
+| Task list | Add task | Task detail |
+|-----------|----------|-------------|
+| ![Task list](assets/screenshots/TaskListScreen.png) | ![Add task](assets/screenshots/AddTaskScreen.png) | ![Task detail](assets/screenshots/TaskDetailsScreen.png) |
+
 ## Install & Run
 
 - Node.js 18+
@@ -69,8 +87,3 @@ On first launch, if the table is empty, tasks are fetched from [JSONPlaceholder]
 
 **Task statuses:** `todo`, `in_progress`, `on_hold`, `done`, `archived`
 
-## Screenshots
-
-| Task list | Add task | Task detail |
-|-----------|----------|-------------|
-| ![Task list](assets/screenshots/TaskListScreen.png) | ![Add task](assets/screenshots/AddTaskScreen.png) | ![Task detail](assets/screenshots/TaskDetailsScreen.png) |

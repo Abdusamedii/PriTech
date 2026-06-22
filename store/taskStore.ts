@@ -23,6 +23,7 @@ type TaskStore = {
   retryHydrate: () => Promise<void>;
   addTask: (title: string, description: string) => Promise<void>;
   setTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
+  toggleTaskCompletion: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   getTaskById: (taskId: string) => Task | undefined;
   clearError: () => void;
@@ -110,6 +111,17 @@ export const useTaskStore = create<TaskStore>()((set, get) => ({
         item.id === taskId ? { ...item, status } : item,
       ),
     }));
+  },
+
+  toggleTaskCompletion: async (taskId) => {
+    const task = get().tasks.find((item) => item.id === taskId);
+
+    if (!task) {
+      return;
+    }
+
+    const nextStatus = task.status === "done" ? "todo" : "done";
+    await get().setTaskStatus(taskId, nextStatus);
   },
 
   deleteTask: async (taskId) => {

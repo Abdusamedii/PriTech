@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Pressable, View } from "react-native";
-import { Trash2 } from "lucide-react-native";
+import { CheckCircle2, Circle, Trash2 } from "lucide-react-native";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -19,6 +19,7 @@ type TaskCardProps = {
   task: Task;
   isDeleting?: boolean;
   onPress: () => void;
+  onToggleCompletion: () => void;
   onDelete: () => void;
   onDeleteAnimationEnd?: () => void;
 };
@@ -27,9 +28,11 @@ export function TaskCard({
   task,
   isDeleting = false,
   onPress,
+  onToggleCompletion,
   onDelete,
   onDeleteAnimationEnd,
 }: TaskCardProps) {
+  const isDone = task.status === "done";
   const scale = useSharedValue(1);
   const cardOpacity = useSharedValue(1);
   const cardTranslateX = useSharedValue(0);
@@ -65,14 +68,24 @@ export function TaskCard({
       className="border border-border bg-card px-4 py-5 active:bg-muted"
     >
       <View className="flex-row items-start gap-4">
+        <Pressable
+          onPress={onToggleCompletion}
+          hitSlop={8}
+          className="pt-0.5 active:opacity-60"
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: isDone }}
+        >
+          {isDone ? (
+            <CheckCircle2 size={24} color="#FF3D00" strokeWidth={1.5} />
+          ) : (
+            <Circle size={24} color="#737373" strokeWidth={1.5} />
+          )}
+        </Pressable>
+
         <View className="flex-1 gap-2">
           <AppText
             variant="h3"
-            className={
-              task.status === "done"
-                ? "text-muted-foreground line-through"
-                : ""
-            }
+            className={isDone ? "text-muted-foreground line-through" : ""}
           >
             {task.title}
           </AppText>

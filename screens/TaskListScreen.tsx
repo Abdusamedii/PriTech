@@ -29,6 +29,7 @@ export function TaskListScreen() {
   const isLoading = useTaskStore((state) => state.isLoading);
   const error = useTaskStore((state) => state.error);
   const deleteTask = useTaskStore((state) => state.deleteTask);
+  const toggleTaskCompletion = useTaskStore((state) => state.toggleTaskCompletion);
   const clearError = useTaskStore((state) => state.clearError);
   const retryHydrate = useTaskStore((state) => state.retryHydrate);
 
@@ -67,6 +68,7 @@ export function TaskListScreen() {
         task={item}
         isDeleting={deletingTaskId === item.id}
         onPress={() => navigation.navigate("TaskDetail", { taskId: item.id })}
+        onToggleCompletion={() => void toggleTaskCompletion(item.id)}
         onDelete={() => handleDelete(item)}
         onDeleteAnimationEnd={() => handleDeleteAnimationEnd(item.id)}
       />
@@ -74,6 +76,7 @@ export function TaskListScreen() {
     [
       navigation,
       handleDelete,
+      toggleTaskCompletion,
       deletingTaskId,
       handleDeleteAnimationEnd,
     ],
