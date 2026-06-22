@@ -28,7 +28,6 @@ export function TaskListScreen() {
   const tasks = useTaskStore((state) => state.tasks);
   const isLoading = useTaskStore((state) => state.isLoading);
   const error = useTaskStore((state) => state.error);
-  const toggleTaskStatus = useTaskStore((state) => state.toggleTaskStatus);
   const deleteTask = useTaskStore((state) => state.deleteTask);
   const clearError = useTaskStore((state) => state.clearError);
 
@@ -67,16 +66,12 @@ export function TaskListScreen() {
         task={item}
         isDeleting={deletingTaskId === item.id}
         onPress={() => navigation.navigate("TaskDetail", { taskId: item.id })}
-        onToggleStatus={() => {
-          void toggleTaskStatus(item.id);
-        }}
         onDelete={() => handleDelete(item)}
         onDeleteAnimationEnd={() => handleDeleteAnimationEnd(item.id)}
       />
     ),
     [
       navigation,
-      toggleTaskStatus,
       handleDelete,
       deletingTaskId,
       handleDeleteAnimationEnd,

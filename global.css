@@ -15,6 +15,11 @@
   --color-input: #1a1a1a;
   --color-card: #0f0f0f;
   --color-card-foreground: #fafafa;
+  --color-status-todo: #737373;
+  --color-status-progress: #ff3d00;
+  --color-status-hold: #f59e0b;
+  --color-status-done: #22c55e;
+  --color-status-archived: #525252;
   --font-sans: "InterTight_400Regular";
   --font-heading: "InterTight_600SemiBold";
   --font-mono: "JetBrainsMono_400Regular";

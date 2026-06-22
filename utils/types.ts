@@ -1,4 +1,9 @@
-export type TaskStatus = "completed" | "pending";
+export type TaskStatus =
+  | "todo"
+  | "in_progress"
+  | "on_hold"
+  | "done"
+  | "archived";
 
 export type Task = {
   id: string;
@@ -16,17 +21,10 @@ export type TaskRow = {
   created_at: string;
 };
 
-export type TaskFilter = "all" | "pending" | "completed";
+export type TaskFilter = "all" | TaskStatus;
 
 export type RootStackParamList = {
   TaskList: undefined;
   AddTask: undefined;
   TaskDetail: { taskId: string };
-};
-
-export type JsonPlaceholderTodo = {
-  userId: number;
-  id: number;
-  title: string;
-  completed: boolean;
 };

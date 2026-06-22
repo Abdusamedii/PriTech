@@ -1,5 +1,6 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
+import { normalizeTaskStatus } from "../utils/statusConfig";
 import type { Task, TaskRow, TaskStatus } from "../utils/types";
 
 function mapRowToTask(row: TaskRow): Task {
@@ -7,7 +8,7 @@ function mapRowToTask(row: TaskRow): Task {
     id: row.id,
     title: row.title,
     description: row.description,
-    status: row.status,
+    status: normalizeTaskStatus(row.status),
     createdAt: row.created_at,
   };
 }
@@ -23,6 +24,8 @@ export async function initDatabase(db: SQLiteDatabase): Promise<void> {
       created_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC);
+    UPDATE tasks SET status = 'todo' WHERE status = 'pending';
+    UPDATE tasks SET status = 'done' WHERE status = 'completed';
   `);
 }
 

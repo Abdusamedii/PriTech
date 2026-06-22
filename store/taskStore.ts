@@ -9,8 +9,7 @@ import {
   insertTasks,
   updateTaskStatus,
 } from "../services/taskDatabase";
-import { fetchSeedTodos } from "../services/jsonPlaceholder";
-import { mapTodosToTasks } from "../utils/taskMapper";
+import { getSeedTasks } from "../utils/seedTasks";
 import type { Task, TaskStatus } from "../utils/types";
 
 type TaskStore = {
@@ -21,7 +20,7 @@ type TaskStore = {
   initialize: (db: SQLiteDatabase) => void;
   hydrateTasks: () => Promise<void>;
   addTask: (title: string, description: string) => Promise<void>;
-  toggleTaskStatus: (taskId: string) => Promise<void>;
+  setTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
   getTaskById: (taskId: string) => Task | undefined;
   clearError: () => void;
@@ -59,8 +58,7 @@ export const useTaskStore = create<TaskStore>()((set, get) => ({
       const count = await getTaskCount(db);
 
       if (count === 0) {
-        const todos = await fetchSeedTodos();
-        const tasks = mapTodosToTasks(todos);
+        const tasks = getSeedTasks();
         await insertTasks(db, tasks);
       }
 
@@ -82,7 +80,7 @@ export const useTaskStore = create<TaskStore>()((set, get) => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       title: title.trim(),
       description: description.trim(),
-      status: "pending",
+      status: "todo",
       createdAt: new Date().toISOString(),
     };
 
@@ -90,21 +88,18 @@ export const useTaskStore = create<TaskStore>()((set, get) => ({
     set((state) => ({ tasks: [task, ...state.tasks] }));
   },
 
-  toggleTaskStatus: async (taskId) => {
+  setTaskStatus: async (taskId, status) => {
     const db = requireDatabase();
     const task = get().tasks.find((item) => item.id === taskId);
 
-    if (!task) {
+    if (!task || task.status === status) {
       return;
     }
 
-    const nextStatus: TaskStatus =
-      task.status === "completed" ? "pending" : "completed";
-
-    await updateTaskStatus(db, taskId, nextStatus);
+    await updateTaskStatus(db, taskId, status);
     set((state) => ({
       tasks: state.tasks.map((item) =>
-        item.id === taskId ? { ...item, status: nextStatus } : item,
+        item.id === taskId ? { ...item, status } : item,
       ),
     }));
   },
