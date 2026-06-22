@@ -1,8 +1,8 @@
 # PriTech Tasks
 
-A React Native task manager built with Expo, TypeScript, NativeWind, and the Bold Typography design system. Created for the PRITECH React Native technical assessment.
+A React Native task manager built with Expo and TypeScript.
 
-## Prerequisites
+## Install & Run
 
 - Node.js 18+
 - npm or yarn
@@ -15,79 +15,66 @@ npm install
 npx expo start
 ```
 
-Press `i` for iOS simulator, `a` for Android emulator, or scan the QR code with Expo Go.
+- Press `i` for iOS simulator
+- Press `a` for Android emulator
+- Scan the QR code with Expo Go on a physical device
 
-Clear Metro cache if styles do not apply:
+If styles do not load correctly, clear the Metro cache:
 
 ```bash
 npx expo start --clear
 ```
 
-## What was implemented
-
-### Core requirements
-
-- **Task list screen** — browse tasks with FlashList
-- **Add new task** — title and description with validation
-- **Mark complete / incomplete** — toggle from list or detail screen
-- **Delete task** — with confirmation alert
-- **Task details** — full view of title, description, status, created date
-- **Input validation** — required title (2–100 chars), optional description (max 500 chars)
-- **Public API** — seeds initial tasks from [JSONPlaceholder `/todos`](https://jsonplaceholder.typicode.com/todos)
-
-### Bonus features
-
-- **Search** — filter tasks by title
-- **Status filter** — All / Pending / Done
-- **Local storage** — tasks persist via Zustand + AsyncStorage
-- **Navigation** — native stack between list, add, and detail screens
-
-## Architecture
+## Folder Structure
 
 ```
-assets/          Static images and icons
-components/      Reusable UI (TaskCard, SearchBar, TaskForm, …)
-components/ui/   Bold Typography primitives (AppText, UnderlineButton, AppInput)
-screens/         TaskListScreen, AddTaskScreen, TaskDetailScreen
-navigation/      RootNavigator (React Navigation native stack)
-store/           Zustand task store with persist middleware
-hooks/           useTaskFilters (search + status filtering)
-services/        JSONPlaceholder API client
-helpers/         AsyncStorage wrappers
-utils/           Types, validation, date formatting, API mappers
+PriTech-1/
+├── assets/              Images, icons, and static files
+├── components/          Reusable UI (TaskCard, SearchBar, TaskForm, …)
+│   └── ui/              Shared primitives (AppText, AppInput, Pill, …)
+├── screens/             TaskListScreen, AddTaskScreen, TaskDetailScreen
+├── navigation/          RootNavigator and navigation theme
+├── store/               Zustand task store
+├── hooks/               useTaskDatabase, useTaskFilters
+├── services/            SQLite database layer (taskDatabase.ts)
+├── utils/               Types, validation, seed data, helpers
+├── App.tsx              App entry (fonts, SQLiteProvider, navigation)
+└── index.ts             Expo entry point
 ```
 
-## Tech stack
+## SQLite
 
-- Expo SDK 56 + TypeScript
-- NativeWind v5 (Tailwind CSS v4)
-- React Navigation (native stack)
-- Zustand + AsyncStorage
-- FlashList
-- lucide-react-native
-- Inter Tight + JetBrains Mono fonts
+Tasks are stored locally with **expo-sqlite**. The database file is `pritech-tasks.db`.
 
-## Task data model
+| Layer | File | Role |
+|-------|------|------|
+| Provider | `App.tsx` | Opens the DB and runs schema setup on launch |
+| Schema & queries | `services/taskDatabase.ts` | CREATE TABLE, CRUD operations |
+| State | `store/taskStore.ts` | Zustand store synced with SQLite |
+| Bootstrap | `hooks/useTaskDatabase.ts` | Initializes store and loads tasks on startup |
 
-| Field       | Type                     | Description              |
-|-------------|--------------------------|--------------------------|
-| title       | string                   | User-entered title       |
-| description | string                   | Short description        |
-| status      | `pending` \| `completed` | Completion state         |
-| createdAt   | ISO string               | Creation timestamp       |
+**Schema**
+
+```sql
+CREATE TABLE tasks (
+  id          TEXT PRIMARY KEY NOT NULL,
+  title       TEXT NOT NULL,
+  description TEXT NOT NULL,
+  status      TEXT NOT NULL,
+  created_at  TEXT NOT NULL
+);
+```
+
+On first launch, if the table is empty, sample tasks from `utils/seedTasks.ts` are inserted automatically.
+
+**Task statuses:** `todo`, `in_progress`, `on_hold`, `done`, `archived`
 
 ## Screenshots
 
-Add screenshots or a screen recording here before submission:
+Add your app screenshots here (e.g. save them in `assets/screenshots/`):
 
-1. Task list with search and filters
-2. Add task form
-3. Task detail view
+| Task list | Add task | Task detail |
+|-----------|----------|-------------|
+| ![Task list](assets/screenshots/task-list.png) | ![Add task](assets/screenshots/add-task.png) | ![Task detail](assets/screenshots/task-detail.png) |
 
-## Cursor skills
-
-This repo includes agent skills for:
-
-- [react-native-best-practices](.cursor/skills/react-native-best-practices/SKILL.md)
-- [react-native-project-structure](.cursor/skills/react-native-project-structure/SKILL.md)
-- [BoldTypographyNativeWind](.cursor/skills/UI/BoldTypographyNativeWind.md)
+Replace the image paths above with your own files once you add them.
