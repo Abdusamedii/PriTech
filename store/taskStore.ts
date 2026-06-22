@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 import { create } from "zustand";
 
+import { fetchSeedTodos } from "../services/jsonPlaceholder";
 import {
   deleteTask as deleteTaskFromDb,
   getAllTasks,
@@ -9,7 +10,7 @@ import {
   insertTasks,
   updateTaskStatus,
 } from "../services/taskDatabase";
-import { getSeedTasks } from "../utils/seedTasks";
+import { mapTodosToTasks } from "../utils/taskMapper";
 import type { Task, TaskStatus } from "../utils/types";
 
 type TaskStore = {
@@ -19,6 +20,7 @@ type TaskStore = {
   error: string | null;
   initialize: (db: SQLiteDatabase) => void;
   hydrateTasks: () => Promise<void>;
+  retryHydrate: () => Promise<void>;
   addTask: (title: string, description: string) => Promise<void>;
   setTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
@@ -58,20 +60,26 @@ export const useTaskStore = create<TaskStore>()((set, get) => ({
       const count = await getTaskCount(db);
 
       if (count === 0) {
-        const tasks = getSeedTasks();
-        await insertTasks(db, tasks);
+        const todos = await fetchSeedTodos();
+        const seedTasks = mapTodosToTasks(todos);
+        await insertTasks(db, seedTasks);
       }
 
       const tasks = await getAllTasks(db);
-      set({ tasks, isLoading: false, isHydrated: true });
+      set({ tasks, isLoading: false, isHydrated: true, error: null });
     } catch {
       set({
         isLoading: false,
         isHydrated: true,
         error:
-          "Could not load tasks from the database. You can still add tasks locally.",
+          "Could not load tasks from the API. You can still add tasks locally.",
       });
     }
+  },
+
+  retryHydrate: async () => {
+    set({ isHydrated: false, error: null });
+    await get().hydrateTasks();
   },
 
   addTask: async (title, description) => {

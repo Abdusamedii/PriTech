@@ -36,7 +36,7 @@ PriTech-1/
 ├── navigation/          RootNavigator and navigation theme
 ├── store/               Zustand task store
 ├── hooks/               useTaskDatabase, useTaskFilters
-├── services/            SQLite database layer (taskDatabase.ts)
+├── services/            API client (jsonPlaceholder.ts) and SQLite (taskDatabase.ts)
 ├── utils/               Types, validation, seed data, helpers
 ├── App.tsx              App entry (fonts, SQLiteProvider, navigation)
 └── index.ts             Expo entry point
@@ -65,16 +65,12 @@ CREATE TABLE tasks (
 );
 ```
 
-On first launch, if the table is empty, sample tasks from `utils/seedTasks.ts` are inserted automatically.
+On first launch, if the table is empty, tasks are fetched from [JSONPlaceholder](https://jsonplaceholder.typicode.com/todos) (`services/jsonPlaceholder.ts`), mapped to the local schema, and persisted in SQLite. If the request fails, you can retry from the task list or add tasks manually.
 
 **Task statuses:** `todo`, `in_progress`, `on_hold`, `done`, `archived`
 
 ## Screenshots
 
-Add your app screenshots here (e.g. save them in `assets/screenshots/`):
-
 | Task list | Add task | Task detail |
 |-----------|----------|-------------|
-| ![Task list](assets/screenshots/task-list.png) | ![Add task](assets/screenshots/add-task.png) | ![Task detail](assets/screenshots/task-detail.png) |
-
-Replace the image paths above with your own files once you add them.
+| ![Task list](assets/screenshots/TaskListScreen.png) | ![Add task](assets/screenshots/AddTaskScreen.png) | ![Task detail](assets/screenshots/TaskDetailsScreen.png) |

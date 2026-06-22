@@ -28,3 +28,10 @@ export type RootStackParamList = {
   AddTask: undefined;
   TaskDetail: { taskId: string };
 };
+
+export type JsonPlaceholderTodo = {
+  userId: number;
+  id: number;
+  title: string;
+  completed: boolean;
+};

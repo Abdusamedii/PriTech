@@ -30,6 +30,7 @@ export function TaskListScreen() {
   const error = useTaskStore((state) => state.error);
   const deleteTask = useTaskStore((state) => state.deleteTask);
   const clearError = useTaskStore((state) => state.clearError);
+  const retryHydrate = useTaskStore((state) => state.retryHydrate);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskFilter>("all");
@@ -105,11 +106,17 @@ export function TaskListScreen() {
         {error ? (
           <View className="gap-3 border border-border bg-muted p-4">
             <AppText variant="body">{error}</AppText>
-            <UnderlineButton
-              label="Dismiss"
-              variant="ghost"
-              onPress={clearError}
-            />
+            <View className="flex-row gap-4">
+              <UnderlineButton
+                label="Retry"
+                onPress={() => void retryHydrate()}
+              />
+              <UnderlineButton
+                label="Dismiss"
+                variant="ghost"
+                onPress={clearError}
+              />
+            </View>
           </View>
         ) : null}
       </AnimatedScreenEntrance>
@@ -119,7 +126,17 @@ export function TaskListScreen() {
           <ActivityIndicator color="#FF3D00" />
         </View>
       ) : filteredTasks.length === 0 ? (
-        <EmptyState title="Nothing here" message={emptyMessage} />
+        <View className="flex-1">
+          <EmptyState title="Nothing here" message={emptyMessage} />
+          {tasks.length === 0 && error ? (
+            <View className="items-center px-6 pb-8">
+              <UnderlineButton
+                label="Retry loading from API"
+                onPress={() => void retryHydrate()}
+              />
+            </View>
+          ) : null}
+        </View>
       ) : (
         <View className="flex-1">
           <FlashList

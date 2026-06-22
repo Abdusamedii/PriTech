@@ -12,16 +12,16 @@ type UnderlineButtonProps = {
   className?: string;
 };
 
-const variantClasses: Record<UnderlineButtonVariant, string> = {
-  primary: "text-accent",
-  secondary: "text-foreground border border-foreground px-6 py-3",
-  ghost: "text-muted-foreground",
+const containerClasses: Record<UnderlineButtonVariant, string> = {
+  primary: "border border-accent px-6 py-3",
+  secondary: "border border-foreground px-6 py-3",
+  ghost: "border border-border px-6 py-3",
 };
 
-const underlineClasses: Record<UnderlineButtonVariant, string> = {
-  primary: "h-0.5 bg-accent",
-  secondary: "h-0",
-  ghost: "h-px bg-foreground",
+const textClasses: Record<UnderlineButtonVariant, string> = {
+  primary: "text-accent",
+  secondary: "text-foreground",
+  ghost: "text-muted-foreground",
 };
 
 export function UnderlineButton({
@@ -37,16 +37,13 @@ export function UnderlineButton({
       disabled={disabled}
       className={`${disabled ? "opacity-50" : "active:opacity-80"} ${className}`.trim()}
     >
-      <View className={variant === "secondary" ? variantClasses.secondary : ""}>
+      <View className={containerClasses[variant]}>
         <AppText
           variant="label"
-          className={`${variantClasses[variant]} normal-case tracking-wider font-heading`}
+          className={`${textClasses[variant]} normal-case tracking-wider font-heading`}
         >
           {label}
         </AppText>
-        {variant !== "secondary" ? (
-          <View className={`mt-1 ${underlineClasses[variant]}`} />
-        ) : null}
       </View>
     </Pressable>
   );
