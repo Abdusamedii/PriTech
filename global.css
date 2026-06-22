@@ -1,0 +1,21 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@theme {
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #737373;
+  --color-accent: #ff3d00;
+  --color-accent-foreground: #0a0a0a;
+  --color-border: #262626;
+  --color-input: #1a1a1a;
+  --color-card: #0f0f0f;
+  --color-card-foreground: #fafafa;
+  --font-sans: "InterTight_400Regular";
+  --font-heading: "InterTight_600SemiBold";
+  --font-mono: "JetBrainsMono_400Regular";
+}
