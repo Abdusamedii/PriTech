@@ -9,6 +9,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AnimatedScreenEntrance } from "../components/AnimatedScreenEntrance";
 import { TaskForm } from "../components/TaskForm";
 import { AppText } from "../components/ui/AppText";
 import { UnderlineButton } from "../components/ui/UnderlineButton";
@@ -27,18 +28,25 @@ export function AddTaskScreen() {
   const [description, setDescription] = useState("");
   const [titleError, setTitleError] = useState<string | undefined>();
   const [descriptionError, setDescriptionError] = useState<string | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const result = validateTaskInput(title, description);
     setTitleError(result.errors.title);
     setDescriptionError(result.errors.description);
 
-    if (!result.valid) {
+    if (!result.valid || isSubmitting) {
       return;
     }
 
-    addTask(title, description);
-    navigation.goBack();
+    setIsSubmitting(true);
+
+    try {
+      await addTask(title, description);
+      navigation.goBack();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,14 +54,17 @@ export function AddTaskScreen() {
       className="flex-1 bg-background"
       style={{ paddingTop: insets.top }}
     >
-      <View className="flex-row items-center justify-between px-6 pb-4 pt-4">
+      <AnimatedScreenEntrance
+        variant="slide"
+        className="flex-row items-center justify-between px-6 pb-4 pt-4"
+      >
         <AppText variant="h1">New task</AppText>
         <UnderlineButton
           label="Cancel"
           variant="ghost"
           onPress={() => navigation.goBack()}
         />
-      </View>
+      </AnimatedScreenEntrance>
 
       <KeyboardAvoidingView
         className="flex-1"
@@ -63,15 +74,17 @@ export function AddTaskScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerClassName="px-6 pb-8"
         >
-          <TaskForm
-            title={title}
-            description={description}
-            titleError={titleError}
-            descriptionError={descriptionError} 
-            onTitleChange={setTitle}
-            onDescriptionChange={setDescription}
-            onSubmit={handleSubmit}
-          />
+          <AnimatedScreenEntrance variant="slide" delay={80}>
+            <TaskForm
+              title={title}
+              description={description}
+              titleError={titleError}
+              descriptionError={descriptionError}
+              onTitleChange={setTitle}
+              onDescriptionChange={setDescription}
+              onSubmit={handleSubmit}
+            />
+          </AnimatedScreenEntrance>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

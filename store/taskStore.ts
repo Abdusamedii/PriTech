@@ -1,103 +1,123 @@
+import type { SQLiteDatabase } from "expo-sqlite";
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 
-import { getStorageItem, setStorageItem, removeStorageItem } from "../helpers/storage";
+import {
+  deleteTask as deleteTaskFromDb,
+  getAllTasks,
+  getTaskCount,
+  insertTask,
+  insertTasks,
+  updateTaskStatus,
+} from "../services/taskDatabase";
 import { fetchSeedTodos } from "../services/jsonPlaceholder";
 import { mapTodosToTasks } from "../utils/taskMapper";
 import type { Task, TaskStatus } from "../utils/types";
 
 type TaskStore = {
   tasks: Task[];
-  hasSeeded: boolean;
   isLoading: boolean;
+  isHydrated: boolean;
   error: string | null;
-  hydrateFromApi: () => Promise<void>;
-  addTask: (title: string, description: string) => void;
-  toggleTaskStatus: (taskId: string) => void;
-  deleteTask: (taskId: string) => void;
+  initialize: (db: SQLiteDatabase) => void;
+  hydrateTasks: () => Promise<void>;
+  addTask: (title: string, description: string) => Promise<void>;
+  toggleTaskStatus: (taskId: string) => Promise<void>;
+  deleteTask: (taskId: string) => Promise<void>;
   getTaskById: (taskId: string) => Task | undefined;
   clearError: () => void;
 };
 
-const zustandStorage = {
-  getItem: async (name: string) => getStorageItem(name),
-  setItem: async (name: string, value: string) => setStorageItem(name, value),
-  removeItem: async (name: string) => removeStorageItem(name),
-};
+let database: SQLiteDatabase | null = null;
 
-export const useTaskStore = create<TaskStore>()(
-  persist(
-    (set, get) => ({
-      tasks: [],
-      hasSeeded: false,
-      isLoading: false,
-      error: null,
+function requireDatabase(): SQLiteDatabase {
+  if (!database) {
+    throw new Error("Database is not initialized");
+  }
+  return database;
+}
 
-      hydrateFromApi: async () => {
-        if (get().hasSeeded) {
-          return;
-        }
+export const useTaskStore = create<TaskStore>()((set, get) => ({
+  tasks: [],
+  isLoading: false,
+  isHydrated: false,
+  error: null,
 
-        set({ isLoading: true, error: null });
+  initialize: (db) => {
+    database = db;
+  },
 
-        try {
-          const todos = await fetchSeedTodos();
-          const tasks = mapTodosToTasks(todos);
-          set({ tasks, hasSeeded: true, isLoading: false });
-        } catch {
-          set({
-            isLoading: false,
-            error: "Could not load tasks from the API. You can still add tasks locally.",
-            hasSeeded: true,
-          });
-        }
-      },
+  hydrateTasks: async () => {
+    const db = requireDatabase();
 
-      addTask: (title, description) => {
-        const task: Task = {
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-          title: title.trim(),
-          description: description.trim(),
-          status: "pending",
-          createdAt: new Date().toISOString(),
-        };
+    if (get().isHydrated) {
+      return;
+    }
 
-        set((state) => ({ tasks: [task, ...state.tasks] }));
-      },
+    set({ isLoading: true, error: null });
 
-      toggleTaskStatus: (taskId) => {
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.id === taskId
-              ? {
-                  ...task,
-                  status:
-                    task.status === "completed"
-                      ? ("pending" as TaskStatus)
-                      : ("completed" as TaskStatus),
-                }
-              : task,
-          ),
-        }));
-      },
+    try {
+      const count = await getTaskCount(db);
 
-      deleteTask: (taskId) => {
-        set((state) => ({
-          tasks: state.tasks.filter((task) => task.id !== taskId),
-        }));
-      },
+      if (count === 0) {
+        const todos = await fetchSeedTodos();
+        const tasks = mapTodosToTasks(todos);
+        await insertTasks(db, tasks);
+      }
 
-      getTaskById: (taskId) => get().tasks.find((task) => task.id === taskId),
+      const tasks = await getAllTasks(db);
+      set({ tasks, isLoading: false, isHydrated: true });
+    } catch {
+      set({
+        isLoading: false,
+        isHydrated: true,
+        error:
+          "Could not load tasks from the database. You can still add tasks locally.",
+      });
+    }
+  },
 
-      clearError: () => set({ error: null }),
-    }),
-    {
-      name: "pritech-task-store",
-      storage: createJSONStorage(() => zustandStorage),
-      partialize: (state) => ({
-        tasks: state.tasks,
-        hasSeeded: state.hasSeeded,
-      }),
-    },
-  ),
-);
+  addTask: async (title, description) => {
+    const db = requireDatabase();
+    const task: Task = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      title: title.trim(),
+      description: description.trim(),
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    };
+
+    await insertTask(db, task);
+    set((state) => ({ tasks: [task, ...state.tasks] }));
+  },
+
+  toggleTaskStatus: async (taskId) => {
+    const db = requireDatabase();
+    const task = get().tasks.find((item) => item.id === taskId);
+
+    if (!task) {
+      return;
+    }
+
+    const nextStatus: TaskStatus =
+      task.status === "completed" ? "pending" : "completed";
+
+    await updateTaskStatus(db, taskId, nextStatus);
+    set((state) => ({
+      tasks: state.tasks.map((item) =>
+        item.id === taskId ? { ...item, status: nextStatus } : item,
+      ),
+    }));
+  },
+
+  deleteTask: async (taskId) => {
+    const db = requireDatabase();
+    await deleteTaskFromDb(db, taskId);
+    set((state) => ({
+      tasks: state.tasks.filter((task) => task.id !== taskId),
+    }));
+  },
+
+  getTaskById: (taskId) => get().tasks.find((task) => task.id === taskId),
+
+  clearError: () => set({ error: null }),
+}));

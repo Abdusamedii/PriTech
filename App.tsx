@@ -10,9 +10,13 @@ import {
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SQLiteProvider } from "expo-sqlite";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { RootNavigator } from "./navigation/RootNavigator";
+import { APP_BACKGROUND, navigationTheme } from "./navigation/navigationTheme";
 import { AppText } from "./components/ui/AppText";
+import { initDatabase } from "./services/taskDatabase";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -30,11 +34,17 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
-      <StatusBar style="light" />
-    </SafeAreaProvider>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: APP_BACKGROUND }}
+    >
+      <SQLiteProvider databaseName="pritech-tasks.db" onInit={initDatabase}>
+        <SafeAreaProvider>
+          <NavigationContainer theme={navigationTheme}>
+            <RootNavigator />
+          </NavigationContainer>
+          <StatusBar style="light" />
+        </SafeAreaProvider>
+      </SQLiteProvider>
+    </GestureHandlerRootView>
   );
 }

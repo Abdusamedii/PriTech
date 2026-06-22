@@ -8,6 +8,14 @@ export type Task = {
   createdAt: string;
 };
 
+export type TaskRow = {
+  id: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  created_at: string;
+};
+
 export type TaskFilter = "all" | "pending" | "completed";
 
 export type RootStackParamList = {

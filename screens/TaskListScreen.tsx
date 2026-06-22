@@ -1,17 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Plus } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AnimatedScreenEntrance } from "../components/AnimatedScreenEntrance";
 import { EmptyState } from "../components/EmptyState";
 import { SearchBar } from "../components/SearchBar";
 import { StatusFilter } from "../components/StatusFilter";
 import { TaskCard } from "../components/TaskCard";
 import { AppText } from "../components/ui/AppText";
 import { UnderlineButton } from "../components/ui/UnderlineButton";
+import { useTaskDatabase } from "../hooks/useTaskDatabase";
 import { useTaskFilters } from "../hooks/useTaskFilters";
 import { useTaskStore } from "../store/taskStore";
 import type { RootStackParamList, Task, TaskFilter } from "../utils/types";
@@ -20,22 +22,30 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, "TaskList">;
 
 export function TaskListScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
+  useTaskDatabase();
+
   const tasks = useTaskStore((state) => state.tasks);
   const isLoading = useTaskStore((state) => state.isLoading);
   const error = useTaskStore((state) => state.error);
-  const hydrateFromApi = useTaskStore((state) => state.hydrateFromApi);
   const toggleTaskStatus = useTaskStore((state) => state.toggleTaskStatus);
   const deleteTask = useTaskStore((state) => state.deleteTask);
   const clearError = useTaskStore((state) => state.clearError);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TaskFilter>("all");
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const filteredTasks = useTaskFilters(tasks, searchQuery, statusFilter);
 
-  useEffect(() => {
-    hydrateFromApi();
-  }, [hydrateFromApi]);
+  const handleDeleteAnimationEnd = useCallback(
+    (taskId: string) => {
+      void deleteTask(taskId).finally(() => {
+        setDeletingTaskId(null);
+      });
+    },
+    [deleteTask],
+  );
 
   const handleDelete = useCallback(
     (task: Task) => {
@@ -44,23 +54,33 @@ export function TaskListScreen() {
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => deleteTask(task.id),
+          onPress: () => setDeletingTaskId(task.id),
         },
       ]);
     },
-    [deleteTask],
+    [],
   );
 
   const renderItem = useCallback(
     ({ item }: { item: Task }) => (
       <TaskCard
         task={item}
+        isDeleting={deletingTaskId === item.id}
         onPress={() => navigation.navigate("TaskDetail", { taskId: item.id })}
-        onToggleStatus={() => toggleTaskStatus(item.id)}
+        onToggleStatus={() => {
+          void toggleTaskStatus(item.id);
+        }}
         onDelete={() => handleDelete(item)}
+        onDeleteAnimationEnd={() => handleDeleteAnimationEnd(item.id)}
       />
     ),
-    [navigation, toggleTaskStatus, handleDelete],
+    [
+      navigation,
+      toggleTaskStatus,
+      handleDelete,
+      deletingTaskId,
+      handleDeleteAnimationEnd,
+    ],
   );
 
   const emptyMessage =
@@ -69,8 +89,11 @@ export function TaskListScreen() {
       : "Try a different search or filter.";
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
-      <View className="gap-6 px-6 pb-4 pt-4">
+    <View
+      className="flex-1 bg-background"
+      style={{ paddingTop: insets.top }}
+    >
+      <AnimatedScreenEntrance className="gap-6 px-6 pb-4 pt-4">
         <View className="flex-row items-end justify-between">
           <AppText variant="display">Tasks</AppText>
           <Pressable
@@ -94,7 +117,7 @@ export function TaskListScreen() {
             />
           </View>
         ) : null}
-      </View>
+      </AnimatedScreenEntrance>
 
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
@@ -113,6 +136,6 @@ export function TaskListScreen() {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }

@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { AppInput } from "./ui/AppInput";
 import { UnderlineButton } from "./ui/UnderlineButton";
@@ -24,22 +25,28 @@ export function TaskForm({
 }: TaskFormProps) {
   return (
     <View className="gap-8">
-      <AppInput
-        label="Title"
-        value={title}
-        onChangeText={onTitleChange}
-        placeholder="What needs to be done?"
-        error={titleError}
-      />
-      <AppInput
-        label="Description"
-        value={description}
-        onChangeText={onDescriptionChange}
-        placeholder="Add a short description"
-        error={descriptionError}
-        multiline
-      />
-      <UnderlineButton label="Save task" onPress={onSubmit} />
+      <Animated.View entering={FadeInUp.delay(80).springify()}>
+        <AppInput
+          label="Title"
+          value={title}
+          onChangeText={onTitleChange}
+          placeholder="What needs to be done?"
+          error={titleError}
+        />
+      </Animated.View>
+      <Animated.View entering={FadeInUp.delay(160).springify()}>
+        <AppInput
+          label="Description"
+          value={description}
+          onChangeText={onDescriptionChange}
+          placeholder="Add a short description"
+          error={descriptionError}
+          multiline
+        />
+      </Animated.View>
+      <Animated.View entering={FadeInUp.delay(240).springify()}>
+        <UnderlineButton label="Save task" onPress={onSubmit} />
+      </Animated.View>
     </View>
   );
 }
